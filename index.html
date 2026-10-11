@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediBridge - Smart Healthcare Emergency & Inter-Centre Redistribution System</title>
+  
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet Interactive Maps CSS CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- AUTHENTICATION CONTAINER -->
+  <div id="authContainer" class="auth-wrapper">
+    <div class="glass-card auth-card">
+      <div class="logo">
+        <i class="fa-solid fa-heart-pulse logo-icon"></i>
+        <span>MEDI<span class="highlight">BRIDGE</span></span>
+      </div>
+      <p class="sub-text">Smart Healthcare Emergency & Inter-Centre Redistribution</p>
+
+      <div class="auth-tabs">
+        <button id="tabPhc" class="tab-btn active" onclick="switchAuthTab('phc')">PHC Staff Login</button>
+        <button id="tabAdmin" class="tab-btn" onclick="switchAuthTab('admin')">District Admin</button>
+      </div>
+
+      <div class="demo-box">
+        <span style="font-weight: 700; color: var(--primary-accent);"><i class="fa-solid fa-bolt"></i> Demo Access:</span>
+        <div>
+          <button type="button" class="btn-demo" onclick="handleLogin('phc')">PHC Staff</button>
+          <button type="button" class="btn-demo" onclick="handleLogin('admin')">Admin</button>
+        </div>
+      </div>
+
+      <form id="phcLoginForm" class="glass-form" onsubmit="event.preventDefault(); handleLogin('phc');">
+        <div class="form-group">
+          <label>PHC Unique Code</label>
+          <input type="text" value="PHC-AMMAPETTAI-01" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" value="phc12345" required>
+        </div>
+        <button type="submit" class="btn-glow-blue"><i class="fa-solid fa-right-to-bracket"></i> Login as PHC Staff</button>
+      </form>
+
+      <form id="adminLoginForm" class="glass-form hidden" onsubmit="event.preventDefault(); handleLogin('admin');">
+        <div class="form-group">
+          <label>Admin ID</label>
+          <input type="text" value="BMO-NAMAKKAL-DISTRICT" required>
+        </div>
+        <div class="form-group">
+          <label>Security Key</label>
+          <input type="password" value="admin12345" required>
+        </div>
+        <button type="submit" class="btn-glow-blue" style="background:var(--purple-accent);"><i class="fa-solid fa-shield-halved"></i> Login as District Admin</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- DASHBOARD SECTION -->
+  <div id="dashboardSection" class="hidden">
+    <nav class="glass-nav">
+      <div class="logo">
+        <i class="fa-solid fa-heart-pulse logo-icon"></i>
+        <span>MEDI<span class="highlight">BRIDGE</span></span>
+      </div>
+      <div>
+        <span id="netStatusBadge" class="network-badge net-online" onclick="toggleNetworkMode()">
+          <i class="fa-solid fa-wifi"></i> <span id="netStatusText">ONLINE MODE (Auto Sync Active)</span>
+        </span>
+        <button class="btn-demo" style="margin-left:10px; color:var(--danger-accent);" onclick="handleLogout()"><i class="fa-solid fa-power-off"></i> Logout</button>
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <!-- HEADER BANNER -->
+      <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 id="welcomeHeading">Welcome to MediBridge Dashboard</h2>
+          <p class="sub-text" style="margin-bottom:0;">Automated POS Dispensing + DSA Min-Heap Priority Queue Forecast Engine</p>
+        </div>
+        <span class="dsa-badge"><i class="fa-solid fa-microchip"></i> DSA Core Active</span>
+      </div>
+
+      <!-- DSA ENGINE INSPECTOR -->
+      <section class="glass-card">
+        <div class="card-title-bar">
+          <h3><i class="fa-solid fa-network-wired" style="color:var(--purple-accent);"></i> Data Structure Core Visualizer</h3>
+        </div>
+        <div class="dsa-grid">
+          <div class="dsa-box">
+            <h4><i class="fa-solid fa-layer-group"></i> 1. Min-Heap Priority Queue</h4>
+            <p style="color:var(--text-sub);">Calculates shortage priority dynamically upon patient POS dispense.</p>
+            <div class="dsa-code" id="heapDsaVisualizer">Min-Heap Top: vicks action 500mg (1.0 hrs left)</div>
+          </div>
+
+          <div class="dsa-box">
+            <h4><i class="fa-solid fa-barcode"></i> 2. Real-time POS Auto-Deduct</h4>
+            <p style="color:var(--text-sub);">Dispensing reduces stock instantly and triggers critical threshold alerts.</p>
+            <div class="dsa-code" id="posDsaVisualizer">Last Dispensed: Paracetamol (10 units)</div>
+          </div>
+
+          <div class="dsa-box">
+            <h4><i class="fa-solid fa-diagram-project"></i> 3. Graph Distance Router</h4>
+            <p style="color:var(--text-sub);">Identifies nearest surplus donor PHC using Dijkstra shortest-path logic.</p>
+            <div class="dsa-code" id="graphDsaVisualizer">Shortest Donor Node: Valayapatti PHC (8.5 km)</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CRITICAL PREDICTION ALERT WITH 1-SENTENCE EXPLANATION -->
+      <section class="glass-card hidden" id="alertBannerSection" style="border-left: 4px solid var(--danger-accent); background: #fef2f2;">
+        <div style="color:var(--danger-accent); font-size:0.75rem; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> CRITICAL STOCK-OUT ALERT (CONSTRAINT-2 EXPLANATION)</div>
+        <div id="alertBannerContent"></div>
+        <div style="margin-top:10px;">
+          <button class="btn-glow-red" onclick="openEmergencyMatcher()"><i class="fa-solid fa-arrows-split-up-and-left"></i> View Inter-Centre Transfer Options (Constraint-1)</button>
+        </div>
+      </section>
+
+      <!-- CONSTRAINT-1 RECOMMENDED TRANSFER MODAL -->
+      <section class="glass-card hidden" id="matcherSection" style="border: 1.5px solid var(--primary-accent);">
+        <div class="card-title-bar">
+          <h3><i class="fa-solid fa-truck-medical" style="color:var(--primary-accent);"></i> Recommended Inter-Centre Transfer (Constraint-1)</h3>
+          <button class="btn-demo" onclick="closeEmergencyMatcher()">&times; Close</button>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Select Shortage Medicine to Transfer:</label>
+          <select id="criticalMedSelect" onchange="onCriticalMedSelectChange(this.value)"></select>
+        </div>
+
+        <div class="impact-grid" id="impactVisualizerBox"></div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button class="btn-glow-green" id="btnRequestTransfer" onclick="triggerTransferRequestForSelected()">
+            <i class="fa-solid fa-truck-ramp-box"></i> Request Instant Transfer (300 units)
+          </button>
+        </div>
+      </section>
+
+      <!-- PHC STAFF VIEW -->
+      <div id="staffView">
+        <div class="grid-2">
+          
+          <!-- AUTOMATED PATIENT DISPENSING POS -->
+          <div class="glass-card">
+            <h3><i class="fa-solid fa-prescription-bottle-medical" style="color:var(--primary-accent);"></i> Automated Patient Dispensing POS</h3>
+            <p class="sub-text">Dispense medicine to patient. Stock reduces automatically in inventory.</p>
+            
+            <form class="glass-form" onsubmit="event.preventDefault(); processAutomatedDispense();">
+              <div class="form-group">
+                <label>Select Medicine (50+ Items Available)</label>
+                <select id="dispenseMedSelect" required></select>
+              </div>
+              
+              <div class="form-group">
+                <label>Dispense Quantity (Units)</label>
+                <input type="number" id="dispenseQty" value="10" min="1" required>
+              </div>
+
+              <div class="form-group">
+                <label>Patient ID / Prescription No</label>
+                <input type="text" id="patientId" value="PAT-2026-088" required>
+              </div>
+
+              <button class="btn-glow-blue" type="submit">
+                <i class="fa-solid fa-barcode"></i> Bill & Dispense (Auto Deduct Stock)
+              </button>
+            </form>
+          </div>
+
+          <!-- LIVE INVENTORY TRACKER TABLE -->
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h3><i class="fa-solid fa-boxes-stacked"></i> Live Stock Inventory</h3>
+              <input type="text" class="glass-search" placeholder="Filter..." onkeyup="filterTable(this, 'inventoryTable')">
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="glass-table">
+                <thead>
+                  <tr>
+                    <th>Medicine</th>
+                    <th>Stock</th>
+                    <th>Burn-Rate</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DISTRICT ADMIN VIEW -->
+      <div id="bmoView" class="hidden">
+        <div class="glass-card">
+          <h3><i class="fa-solid fa-file-signature"></i> Inter-Centre Proposed Redistribution Approval Portal</h3>
+          <p class="sub-text">Approve or Decline inter-centre stock transfers between PHCs.</p>
+          <div style="overflow-x: auto;">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th>Requesting PHC</th>
+                  <th>Donor PHC</th>
+                  <th>Medicine</th>
+                  <th>Quantity</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminTransferRequestsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- GEOSPATIAL MAP WITH MANUAL LOCATION SEARCH + GPS LOCATE -->
+      <div class="glass-card margin-top">
+        <div class="card-title-bar" style="flex-wrap: wrap; gap: 10px;">
+          <h3><i class="fa-solid fa-map-location-dot"></i> Live GeoSpatial PHCs & Nearby Pharmacies</h3>
+          
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <input type="text" id="mapSearchInput" class="glass-search" placeholder="Enter City/Town (e.g. Tiruchengode, Chennai)..." style="width: 250px;" onkeypress="if(event.key==='Enter') searchLocationByName()">
+            <button class="btn-demo" onclick="searchLocationByName()"><i class="fa-solid fa-magnifying-glass"></i> Search Place</button>
+            <button class="btn-demo" style="background:var(--primary-accent); color:#fff;" onclick="locateUser()"><i class="fa-solid fa-crosshairs"></i> Use My GPS</button>
+          </div>
+        </div>
+        <div id="map"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- External Script -->
+  <script src="script.js"></script>
+</body>
+</html>
